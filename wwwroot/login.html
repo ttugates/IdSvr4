@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <title>Log in via JS/HTML</title>
+  <style>
+    body {
+      color-scheme: dark; background-color: rgb(31, 31, 31); color: white; padding: 32px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <form onsubmit="submitForm(event)">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" value="USER@GMAIL.COM" required>
+    <br><br>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" value="SECRETPASS" required>
+    <br><br>
+    <div id="failed-message" style="color: red; margin-bottom: 12px; display: none;">Invalid email or password</div>
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnUrl = urlParams.get('ReturnUrl');
+
+    async function submitForm(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const failedMessage = document.getElementById('failed-message');
+      
+      try {
+        const response = await fetch('/api/Account/Login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            Email: email,
+            Password: password,
+            ReturnUrl: returnUrl
+          })
+        });
+
+        if (!response.ok) {
+          console.error(response);
+          failedMessage.style.display = 'block';
+          return;
+        }
+
+        const result = await response.json();
+
+        if (result.Succeeded || result.succeeded) {
+          failedMessage.style.display = 'none';
+          console.log('Success:', result);
+          window.location.replace(returnUrl || '/');
+        } else {
+          failedMessage.style.display = 'block';
+          console.log('Failed:', result);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+  </script>
+</body>
+
+</html>
